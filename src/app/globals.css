@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0F1115;
+  --surface: #1A1C22;
+  --primary: #38BDF8;
+  --success: #34D399;
+  --danger: #F87171;
+  --warning: #FBBF24;
+  --text-main: #E5E7EB;
+  --text-secondary: #9CA3AF;
+  --border: #2C2F36;
+}
+
+
+body {
+  background-color: var(--background);
+  color: var(--text-main);
+  font-family: Inter, ui-sans-serif, system-ui;
+}
+
+
+@layer utilities {
+  .bg-background { background-color: var(--background); }
+  .bg-surface { background-color: var(--surface); }
+  .bg-primary { background-color: var(--primary); }
+  .bg-success { background-color: var(--success); }
+  .bg-danger { background-color: var(--danger); }
+  .bg-warning { background-color: var(--warning); }
+  
+  .text-main { color: var(--text-main); }
+  .text-secondary { color: var(--text-secondary); }
+  .text-primary { color: var(--primary); }
+  .text-success { color: var(--success); }
+  .text-danger { color: var(--danger); }
+  .text-warning { color: var(--warning); }
+  
+  .border-custom { border-color: var(--border); }
+  
+  .ring-primary { --tw-ring-color: var(--primary); }
+  .focus\:ring-primary:focus { --tw-ring-color: var(--primary); }
+  
+  .accent-primary { accent-color: var(--primary); }
+  
+
+  input[type="checkbox"] {
+    accent-color: var(--primary);
+  }
+  
+
+  .bg-primary:hover {
+    background-color: rgba(56, 189, 248, 0.8);
+  }
+}
