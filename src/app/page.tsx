@@ -6,6 +6,15 @@ import { useAuthStore } from "@/stores/authStore";
 const Home = () => {
   const { isAuthenticated, token } = useAuthStore();
 
+  const token2 =
+    typeof window !== "undefined"
+      ? localStorage.getItem("token") || sessionStorage.getItem("token")
+      : null;
+
+  console.log("isAuthenticated:", isAuthenticated);
+  console.log("token:", token);
+  console.log("token2:", token2);
+
   useEffect(() => {
     if (isAuthenticated && token) {
       window.location.href = "/dashboard";
