@@ -42,7 +42,7 @@ const Card = ({ filteredProblems }: CardProps) => {
         >
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <h3 className="text-main font-semibold text-lg group-hover:text-primary transition-colors line-clamp-2">
+              <h3 className="text-main font-semibold text-lg group-hover:text-primary capitalize transition-colors line-clamp-2">
                 {problem.problemTitle}
               </h3>
               <a
@@ -75,7 +75,7 @@ const Card = ({ filteredProblems }: CardProps) => {
               </span>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between capitalize">
               <span className="text-secondary text-sm">Language:</span>
               <span className="text-main font-medium">{problem.language}</span>
             </div>
@@ -107,7 +107,7 @@ const Card = ({ filteredProblems }: CardProps) => {
                 {problem.tags.slice(0, 3).map((tag, index) => (
                   <span
                     key={index}
-                    className="bg-background px-2 py-1 rounded-md text-xs text-secondary border border-custom"
+                    className="bg-background px-2 py-1 rounded-md text-xs text-secondary border border-custom capitalize"
                   >
                     {tag}
                   </span>
@@ -137,7 +137,7 @@ const Card = ({ filteredProblems }: CardProps) => {
                 ))}
               </div>
             </div>
-            <button className="text-secondary text-sm cursor-pointer hover:underline">
+            <button className="text-secondary text-sm cursor-pointer underline">
               Notes
             </button>
           </div>

@@ -20,10 +20,9 @@ type SidebarProps = {
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
-  const { logout, loading, error } = useAuthStore();
+  const { user, logout, loading, error } = useAuthStore();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const pathname = usePathname();
-  const router = useRouter();
 
   const menuItems = [
     {
@@ -66,62 +65,56 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
   return (
     <div
       className={`${className} bg-surface border-r rounded-r-2xl border-custom transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-20" : "w-64"
       } flex flex-col overflow-hidden`}
     >
-      {/* Header */}
       <div className="p-4 border-b border-custom">
-        <div
-          className={`transition-all duration-300 ${
-            isCollapsed
-              ? "flex flex-col items-center gap-2"
-              : "flex items-center justify-between"
-          }`}
-        >
-          <div
-            className={`flex items-center transition-all duration-300 ${
-              isCollapsed ? "flex-col gap-1" : "gap-3"
-            }`}
-          >
-            <div
-              className={`transition-all duration-300 flex-shrink-0 ${
-                isCollapsed ? "w-8 h-8" : "w-12 h-12"
-              }`}
-            >
+        {isCollapsed ? (
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-8 h-8 flex-shrink-0">
               <Image
                 src="/icon.svg"
                 alt="AlgoTracker Logo"
-                width={isCollapsed ? 32 : 48}
-                height={isCollapsed ? 32 : 48}
+                width={32}
+                height={32}
                 className="rounded-full transition-all duration-300"
               />
             </div>
-
-            <h2
-              className={`text-primary text-lg font-bold whitespace-nowrap transition-all duration-300 ${
-                isCollapsed
-                  ? "opacity-0 scale-95 h-0 overflow-hidden"
-                  : "opacity-100 scale-100"
-              }`}
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-1 rounded-lg hover:text-[#E5E7EB] text-secondary cursor-pointer hover:bg-[#38BDF8]/20 transition-colors duration-300 flex-shrink-0"
             >
-              Algo Tracker
-            </h2>
-          </div>
-
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-lg hover:text-[#E5E7EB] text-secondary cursor-pointer hover:bg-[#38BDF8]/20 transition-colors duration-300 flex-shrink-0"
-          >
-            {isCollapsed ? (
               <ChevronRightIcon className="w-3 h-3" />
-            ) : (
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 flex-shrink-0">
+                <Image
+                  src="/icon.svg"
+                  alt="AlgoTracker Logo"
+                  width={48}
+                  height={48}
+                  className="rounded-full transition-all duration-300"
+                />
+              </div>
+
+              <h2 className="text-primary text-lg font-bold whitespace-nowrap">
+                Algo Tracker
+              </h2>
+            </div>
+
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-2 rounded-lg hover:text-[#E5E7EB] text-secondary cursor-pointer hover:bg-[#38BDF8]/20 transition-colors duration-300 flex-shrink-0"
+            >
               <ChevronLeftIcon className="w-4 h-4" />
-            )}
-          </button>
-        </div>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {menuItems.map((item) => (
@@ -163,7 +156,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
         </ul>
       </nav>
 
-      {/* Logout Button */}
       <div className="px-4 py-2 border-t border-custom">
         {error && !isCollapsed && (
           <div className="mb-3 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
@@ -196,7 +188,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
         </button>
       </div>
 
-      {/* User Info */}
       <div className="p-4 border-t border-custom bg-background rounded-br-2xl">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -204,10 +195,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-main text-sm font-medium truncate">John Doe</p>
-              <p className="text-secondary text-xs truncate">
-                john@example.com
+              <p className="text-main text-sm font-medium truncate capitalize">
+                {user?.username}
               </p>
+              <p className="text-secondary text-xs truncate">{user?.email}</p>
             </div>
           )}
         </div>
