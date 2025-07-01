@@ -27,7 +27,7 @@ const FilterProblems = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-background border border-custom rounded-lg px-3 py-1 text-main focus:ring-2 focus:ring-primary focus:border-primary"
+            className="bg-background border border-custom rounded-lg px-3 py-1.5 text-main focus:ring-2 focus:ring-primary focus:border-primary"
           >
             <option value="all">All</option>
             <option value={Status.Solved}>Solved</option>
@@ -41,7 +41,7 @@ const FilterProblems = ({
           <select
             value={filterDifficulty}
             onChange={(e) => setFilterDifficulty(e.target.value)}
-            className="bg-background border border-custom rounded-lg px-3 py-1 text-main focus:ring-2 focus:ring-primary focus:border-primary"
+            className="bg-background border border-custom rounded-lg px-3 py-1.5 text-main focus:ring-2 focus:ring-primary focus:border-primary"
           >
             <option value="all">All</option>
             <option value={Difficulty.Easy}>Easy</option>

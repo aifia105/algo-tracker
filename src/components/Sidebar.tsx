@@ -34,7 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
     {
       name: "Progress",
       icon: ProgressIcon,
-      href: "",
+      href: "/progress",
       isActive: pathname === "/progress",
     },
     {
@@ -46,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
     {
       name: "Profile",
       icon: UserIcon,
-      href: "",
+      href: "/profile",
       isActive: pathname === "/profile",
     },
   ];
@@ -70,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
     >
       <div className="p-4 border-b border-custom">
         {isCollapsed ? (
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex flex-col items-center justify-center gap-2">
             <div className="w-8 h-8 flex-shrink-0">
               <Image
                 src="/icon.svg"

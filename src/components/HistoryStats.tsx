@@ -21,17 +21,17 @@ const HistoryStats = ({ problems }: HistoryStatsProps) => {
         <div className="text-2xl font-bold text-success">
           {problems.filter((p) => p.status === Status.Solved).length}
         </div>
-        <div className="text-sm text-secondary">Solved</div>
+        <div className="text-md text-secondary">Solved</div>
       </div>
       <div className="text-center">
         <div className="text-2xl font-bold text-warning">
           {problems.filter((p) => p.status === Status.Attempted).length}
         </div>
-        <div className="text-sm text-secondary">Attempted</div>
+        <div className="text-md text-secondary">Attempted</div>
       </div>
       <div className="text-center">
         <div className="text-2xl font-bold text-primary">{problems.length}</div>
-        <div className="text-sm text-secondary">Total</div>
+        <div className="text-md text-secondary">Total</div>
       </div>
       <div className="text-center">
         <div className="text-2xl font-bold text-main">
@@ -44,7 +44,7 @@ const HistoryStats = ({ problems }: HistoryStatsProps) => {
               )
             : "0m"}
         </div>
-        <div className="text-sm text-secondary">Avg Time</div>
+        <div className="text-md text-secondary">Avg Time</div>
       </div>
     </div>
   );
