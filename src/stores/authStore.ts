@@ -19,7 +19,7 @@ type authState = {
     email: string,
     password: string
   ) => Promise<User | undefined>;
-  logout: () => void;
+  logout: () => boolean;
   initializeAuth: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   clearError: () => void;
@@ -83,9 +83,22 @@ export const useAuthStore = create<authState>((set) => ({
     }
   },
   logout: () => {
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("token");
-    set({ isAuthenticated: false, user: null, token: null, error: null });
+    try {
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      set({
+        isAuthenticated: false,
+        user: null,
+        token: null,
+        error: null,
+      });
+      return true;
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : "Logout failed",
+      });
+      return false;
+    }
   },
 
   initializeAuth: async () => {

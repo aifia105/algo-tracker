@@ -2,6 +2,7 @@ import React, { use, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import CustomSelect from "./CustomSelect";
 
 type ProblemEntryFormProps = { toggle?: (value: boolean) => void };
 
@@ -30,6 +31,7 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isValid, isSubmitting: formIsSubmitting },
   } = useForm<ProblemEntry>({
     defaultValues: {
@@ -50,6 +52,22 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
     mode: "onChange",
   });
 
+  const difficultyValue = watch("difficulty");
+  const statusValue = watch("status");
+
+  const difficultyOptions = [
+    { value: "Easy", label: "Easy" },
+    { value: "Medium", label: "Medium" },
+    { value: "Hard", label: "Hard" },
+    { value: "Super Hard", label: "Super Hard" },
+  ];
+
+  const statusOptions = [
+    { value: "Solved", label: "Solved" },
+    { value: "Attempted", label: "Attempted" },
+    { value: "Skipped", label: "Skipped" },
+  ];
+
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setTagsInput(value);
@@ -58,6 +76,12 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0);
     setValue("tags", tagsArray, { shouldValidate: true });
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget && toggle) {
+      toggle(false);
+    }
   };
 
   const onSaveHandler = async (data: ProblemEntry) => {
@@ -72,8 +96,11 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="backdrop-blur-sm bg-surface/80 p-8 rounded-2xl border border-custom shadow-2xl w-[600px] max-h-[90vh] overflow-y-auto transform transition-all duration-300">
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="backdrop-blur-sm bg-surface/80 p-8 rounded-2xl border border-custom shadow-2xl w-[600px] max-h-[90vh] overflow-y-auto transform transition-all duration-300 scrollbar-hide">
         <h2 className="text-3xl font-bold mb-8 text-center text-main bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
           Add New Problem
         </h2>
@@ -112,21 +139,16 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               >
                 Difficulty
               </label>
-              <select
-                id="difficulty"
-                {...register("difficulty")}
+              <CustomSelect
+                options={difficultyOptions}
+                value={difficultyValue}
+                onChange={(value) =>
+                  setValue("difficulty", value as any, { shouldValidate: true })
+                }
+                placeholder="Select difficulty"
                 disabled={formIsSubmitting}
-                className={`w-full px-4 py-3 border rounded-xl bg-surface text-main focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
-                  errors.difficulty
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-custom"
-                } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <option value="Easy">Easy</option>
-                <option value="Medium">Medium</option>
-                <option value="Hard">Hard</option>
-                <option value="Super Hard">Super Hard</option>
-              </select>
+                error={!!errors.difficulty}
+              />
               {errors.difficulty && (
                 <p className="text-red-400 text-sm mt-1">
                   {errors.difficulty.message}
@@ -221,20 +243,16 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               >
                 Status
               </label>
-              <select
-                id="status"
-                {...register("status")}
+              <CustomSelect
+                options={statusOptions}
+                value={statusValue}
+                onChange={(value) =>
+                  setValue("status", value as any, { shouldValidate: true })
+                }
+                placeholder="Select status"
                 disabled={formIsSubmitting}
-                className={`w-full px-4 py-3 border rounded-xl bg-surface text-main focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
-                  errors.status
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-custom"
-                } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <option value="Solved">Solved</option>
-                <option value="Attempted">Attempted</option>
-                <option value="Skipped">Skipped</option>
-              </select>
+                error={!!errors.status}
+              />
               {errors.status && (
                 <p className="text-red-400 text-sm mt-1">
                   {errors.status.message}

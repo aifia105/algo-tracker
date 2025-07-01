@@ -2,6 +2,7 @@ import React from "react";
 
 interface IconProps {
   className?: string;
+  strokeWidth?: number;
 }
 
 export const EyeIcon: React.FC<IconProps> = ({ className = "w-5 h-5" }) => (
@@ -63,7 +64,8 @@ export const LoadingSpinner: React.FC<IconProps> = ({
 );
 
 export const DashboardIcon: React.FC<IconProps> = ({
-  className = "w-5 h-5",
+  className,
+  strokeWidth = 2,
 }) => (
   <svg
     className={className}
@@ -74,13 +76,16 @@ export const DashboardIcon: React.FC<IconProps> = ({
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth={2}
-      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+      strokeWidth={strokeWidth}
+      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 2 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
     />
   </svg>
 );
 
-export const UserIcon: React.FC<IconProps> = ({ className = "w-5 h-5" }) => (
+export const UserIcon: React.FC<IconProps> = ({
+  className,
+  strokeWidth = 2,
+}) => (
   <svg
     className={className}
     fill="none"
@@ -90,13 +95,16 @@ export const UserIcon: React.FC<IconProps> = ({ className = "w-5 h-5" }) => (
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth={2}
+      strokeWidth={strokeWidth}
       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
     />
   </svg>
 );
 
-export const LogoutIcon: React.FC<IconProps> = ({ className = "w-5 h-5" }) => (
+export const HistoryIcon: React.FC<IconProps> = ({
+  className,
+  strokeWidth = 2,
+}) => (
   <svg
     className={className}
     fill="none"
@@ -106,7 +114,45 @@ export const LogoutIcon: React.FC<IconProps> = ({ className = "w-5 h-5" }) => (
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth={2}
+      strokeWidth={strokeWidth}
+      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+export const ProgressIcon: React.FC<IconProps> = ({
+  className = "w-5 h-5",
+  strokeWidth = 2,
+}) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={strokeWidth}
+      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+    />
+  </svg>
+);
+
+export const LogoutIcon: React.FC<IconProps> = ({
+  className,
+  strokeWidth = 2,
+}) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={strokeWidth}
       d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
     />
   </svg>
@@ -160,6 +206,22 @@ export const PlusIcon: React.FC<IconProps> = ({ className = "w-5 h-5" }) => (
       strokeLinejoin="round"
       strokeWidth={2}
       d="M12 4v16m8-8H4"
+    />
+  </svg>
+);
+
+export const ArrowDownIcon: React.FC<IconProps> = ({ className }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M19 9l-7 7-7-7"
     />
   </svg>
 );
