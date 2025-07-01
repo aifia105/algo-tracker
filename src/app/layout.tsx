@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import LayoutProvider from "@/providers/LayoutProvider";
 
 import { Inter } from "next/font/google";
 
@@ -64,7 +65,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable}`}>
-      <body suppressHydrationWarning={true}>{children}</body>
+      <body suppressHydrationWarning={true}>
+        <LayoutProvider>{children}</LayoutProvider>
+      </body>
     </html>
   );
 }

@@ -1,8 +1,12 @@
-import React, { use, useEffect } from "react";
+import React, { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CustomSelect from "./CustomSelect";
+import { useAuthStore } from "@/stores/authStore";
+import { useProblemStore } from "@/stores/problemStore";
+import { Difficulty, Status } from "@/types";
+import { CancelIcon, ErrorIcon } from "./icons/Icons";
 
 type ProblemEntryFormProps = { toggle?: (value: boolean) => void };
 
@@ -10,14 +14,14 @@ const ProblemEntrySchema = z.object({
   problemId: z.string().min(1, "Problem ID is required"),
   problemTitle: z.string().min(1, "Problem title is required"),
   problemUrl: z.string().min(1, "Problem URL is required"),
-  difficulty: z.enum(["Easy", "Medium", "Hard", "Super Hard"]),
+  difficulty: z.nativeEnum(Difficulty),
   language: z.string().min(1, "Language is required"),
   timeTaken: z.number().min(1, "Time taken must be greater than 0"),
-  status: z.enum(["Solved", "Attempted", "Skipped"]),
+  status: z.nativeEnum(Status),
   tags: z.array(z.string()).min(1, "At least one tag is required"),
   dateSolved: z.date().min(new Date("2000-01-01"), "Date must be valid"),
-  cognitiveLoad: z.number().optional(),
-  attempts: z.number().optional(),
+  cognitiveLoad: z.number().min(1, "Cognitive load must be between 1-5").max(5),
+  attempts: z.number().min(1, "Attempts must be at least 1"),
   notes: z.string().optional(),
 });
 
@@ -25,6 +29,9 @@ type ProblemEntry = z.infer<typeof ProblemEntrySchema>;
 
 const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
   const [tagsInput, setTagsInput] = React.useState("");
+  const { user } = useAuthStore();
+  const { addProblem, loading, error, clearError } = useProblemStore();
+  const [authError, setAuthError] = React.useState<string | null>(null);
 
   const {
     register,
@@ -38,14 +45,14 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
       problemId: "",
       problemTitle: "",
       problemUrl: "",
-      difficulty: "Easy",
+      difficulty: Difficulty.Easy,
       language: "",
-      timeTaken: 0,
-      status: "Attempted",
+      timeTaken: 1,
+      status: Status.Attempted,
       tags: [],
       dateSolved: new Date(),
-      cognitiveLoad: 0,
-      attempts: 0,
+      cognitiveLoad: 1,
+      attempts: 1,
       notes: "",
     },
     resolver: zodResolver(ProblemEntrySchema),
@@ -56,16 +63,16 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
   const statusValue = watch("status");
 
   const difficultyOptions = [
-    { value: "Easy", label: "Easy" },
-    { value: "Medium", label: "Medium" },
-    { value: "Hard", label: "Hard" },
-    { value: "Super Hard", label: "Super Hard" },
+    { value: Difficulty.Easy, label: "Easy" },
+    { value: Difficulty.Medium, label: "Medium" },
+    { value: Difficulty.Hard, label: "Hard" },
+    { value: Difficulty.SuperHard, label: "Super Hard" },
   ];
 
   const statusOptions = [
-    { value: "Solved", label: "Solved" },
-    { value: "Attempted", label: "Attempted" },
-    { value: "Skipped", label: "Skipped" },
+    { value: Status.Solved, label: "Solved" },
+    { value: Status.Attempted, label: "Attempted" },
+    { value: Status.Skipped, label: "Skipped" },
   ];
 
   const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,6 +83,13 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0);
     setValue("tags", tagsArray, { shouldValidate: true });
+
+    if (error) {
+      clearError();
+    }
+    if (authError) {
+      setAuthError(null);
+    }
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -86,14 +100,48 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
 
   const onSaveHandler = async (data: ProblemEntry) => {
     try {
-      console.log("Problem entry data:", data);
-      // Handle form submission logic here
-      reset();
-      if (toggle) toggle(false);
+      if (!user) {
+        setAuthError("User not authenticated");
+        window.location.href = "/auth/login";
+        return;
+      }
+
+      clearError();
+      setAuthError(null);
+
+      const problemData = {
+        ...data,
+        tags: data.tags.map((tag) => tag.trim()),
+        dateSolved: data.dateSolved.toISOString(),
+        userId: user.id,
+      };
+
+      const result = await addProblem(problemData);
+
+      if (result) {
+        reset();
+        setTagsInput("");
+        if (toggle) toggle(false);
+      }
     } catch (error) {
       console.error("Failed to save problem entry:", error);
     }
   };
+
+  const handleInputFocus = () => {
+    if (error) {
+      clearError();
+    }
+    if (authError) {
+      setAuthError(null);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      clearError();
+    };
+  }, [clearError]);
 
   return (
     <div
@@ -104,6 +152,49 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
         <h2 className="text-3xl font-bold mb-8 text-center text-main bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
           Add New Problem
         </h2>
+
+        {/* Loading Indicator */}
+        {(loading || formIsSubmitting) && (
+          <div className="flex items-center justify-center mb-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-3 text-secondary">
+              {formIsSubmitting ? "Submitting..." : "Processing..."}
+            </span>
+          </div>
+        )}
+
+        {(error || authError) && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ErrorIcon />
+              </div>
+              <div className="ml-3">
+                <p className="text-red-400 font-medium">
+                  {authError
+                    ? "Authentication Error"
+                    : "Error submitting problem"}
+                </p>
+                <p className="text-red-300 text-sm mt-1">
+                  {authError || error}
+                </p>
+              </div>
+              <div className="ml-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearError();
+                    setAuthError(null);
+                  }}
+                  className="text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                >
+                  <CancelIcon />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSaveHandler)} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -117,12 +208,17 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
                 id="problemId"
                 type="text"
                 {...register("problemId")}
-                disabled={formIsSubmitting}
+                disabled={formIsSubmitting || loading}
+                onFocus={handleInputFocus}
                 className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                   errors.problemId
                     ? "border-red-500 focus:ring-red-500"
                     : "border-custom"
-                } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${
+                  formIsSubmitting || loading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
                 placeholder="e.g. LC-001"
               />
               {errors.problemId && (
@@ -142,11 +238,14 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               <CustomSelect
                 options={difficultyOptions}
                 value={difficultyValue}
-                onChange={(value) =>
-                  setValue("difficulty", value as any, { shouldValidate: true })
-                }
+                onChange={(value) => {
+                  handleInputFocus();
+                  setValue("difficulty", value as any, {
+                    shouldValidate: true,
+                  });
+                }}
                 placeholder="Select difficulty"
-                disabled={formIsSubmitting}
+                disabled={formIsSubmitting || loading}
                 error={!!errors.difficulty}
               />
               {errors.difficulty && (
@@ -168,12 +267,17 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               id="problemTitle"
               type="text"
               {...register("problemTitle")}
-              disabled={formIsSubmitting}
+              disabled={formIsSubmitting || loading}
+              onFocus={handleInputFocus}
               className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                 errors.problemTitle
                   ? "border-red-500 focus:ring-red-500"
                   : "border-custom"
-              } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${
+                formIsSubmitting || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               placeholder="Enter problem title"
             />
             {errors.problemTitle && (
@@ -194,12 +298,17 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               id="problemUrl"
               type="url"
               {...register("problemUrl")}
-              disabled={formIsSubmitting}
+              disabled={formIsSubmitting || loading}
+              onFocus={handleInputFocus}
               className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                 errors.problemUrl
                   ? "border-red-500 focus:ring-red-500"
                   : "border-custom"
-              } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${
+                formIsSubmitting || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               placeholder="https://leetcode.com/problems/..."
             />
             {errors.problemUrl && (
@@ -221,12 +330,17 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
                 id="language"
                 type="text"
                 {...register("language")}
-                disabled={formIsSubmitting}
+                disabled={formIsSubmitting || loading}
+                onFocus={handleInputFocus}
                 className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                   errors.language
                     ? "border-red-500 focus:ring-red-500"
                     : "border-custom"
-                } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${
+                  formIsSubmitting || loading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
                 placeholder="e.g. JavaScript, Python"
               />
               {errors.language && (
@@ -246,11 +360,12 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               <CustomSelect
                 options={statusOptions}
                 value={statusValue}
-                onChange={(value) =>
-                  setValue("status", value as any, { shouldValidate: true })
-                }
+                onChange={(value) => {
+                  handleInputFocus();
+                  setValue("status", value as any, { shouldValidate: true });
+                }}
                 placeholder="Select status"
-                disabled={formIsSubmitting}
+                disabled={formIsSubmitting || loading}
                 error={!!errors.status}
               />
               {errors.status && (
@@ -273,13 +388,18 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
                 id="timeTaken"
                 type="number"
                 {...register("timeTaken", { valueAsNumber: true })}
-                disabled={formIsSubmitting}
+                disabled={formIsSubmitting || loading}
+                onFocus={handleInputFocus}
                 className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                   errors.timeTaken
                     ? "border-red-500 focus:ring-red-500"
                     : "border-custom"
-                } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
-                placeholder="30"
+                } ${
+                  formIsSubmitting || loading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                placeholder="1"
                 min="1"
               />
               {errors.timeTaken && (
@@ -300,14 +420,19 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
                 id="attempts"
                 type="number"
                 {...register("attempts", { valueAsNumber: true })}
-                disabled={formIsSubmitting}
+                disabled={formIsSubmitting || loading}
+                onFocus={handleInputFocus}
                 className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                   errors.attempts
                     ? "border-red-500 focus:ring-red-500"
                     : "border-custom"
-                } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${
+                  formIsSubmitting || loading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
                 placeholder="1"
-                min="0"
+                min="1"
               />
               {errors.attempts && (
                 <p className="text-red-400 text-sm mt-1">
@@ -327,13 +452,18 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
                 id="cognitiveLoad"
                 type="number"
                 {...register("cognitiveLoad", { valueAsNumber: true })}
-                disabled={formIsSubmitting}
+                disabled={formIsSubmitting || loading}
+                onFocus={handleInputFocus}
                 className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                   errors.cognitiveLoad
                     ? "border-red-500 focus:ring-red-500"
                     : "border-custom"
-                } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
-                placeholder="5"
+                } ${
+                  formIsSubmitting || loading
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                placeholder="3"
                 min="1"
                 max="5"
               />
@@ -357,12 +487,16 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               type="text"
               value={tagsInput}
               onChange={handleTagsChange}
-              disabled={formIsSubmitting}
+              disabled={formIsSubmitting || loading}
               className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                 errors.tags
                   ? "border-red-500 focus:ring-red-500"
                   : "border-custom"
-              } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${
+                formIsSubmitting || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               placeholder="array, two-pointers, dynamic-programming"
             />
             {errors.tags && (
@@ -381,12 +515,17 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               id="dateSolved"
               type="date"
               {...register("dateSolved", { valueAsDate: true })}
-              disabled={formIsSubmitting}
+              disabled={formIsSubmitting || loading}
+              onFocus={handleInputFocus}
               className={`w-full px-4 py-3 border rounded-xl bg-surface text-main focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 ${
                 errors.dateSolved
                   ? "border-red-500 focus:ring-red-500"
                   : "border-custom"
-              } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${
+                formIsSubmitting || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
             />
             {errors.dateSolved && (
               <p className="text-red-400 text-sm mt-1">
@@ -406,12 +545,17 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
               id="notes"
               rows={3}
               {...register("notes")}
-              disabled={formIsSubmitting}
+              disabled={formIsSubmitting || loading}
+              onFocus={handleInputFocus}
               className={`w-full px-4 py-3 border rounded-xl bg-surface text-main placeholder-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 resize-none ${
                 errors.notes
                   ? "border-red-500 focus:ring-red-500"
                   : "border-custom"
-              } ${formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${
+                formIsSubmitting || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               placeholder="Additional notes about the problem or solution..."
             />
             {errors.notes && (
@@ -424,24 +568,37 @@ const ProblemEntryForm = ({ toggle }: ProblemEntryFormProps) => {
           <div className="flex gap-3 pt-4">
             <button
               type="button"
-              onClick={() => toggle && toggle(false)}
-              disabled={formIsSubmitting}
+              onClick={() => {
+                clearError();
+                setAuthError(null);
+                toggle && toggle(false);
+              }}
+              disabled={formIsSubmitting || loading}
               className={`flex-1 font-semibold px-6 py-3 rounded-xl bg-gray-500/20 text-secondary border border-custom hover:bg-gray-500/30 hover:text-main transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/50 ${
-                formIsSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                formIsSubmitting || loading
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={!isValid || formIsSubmitting}
+              disabled={!isValid || formIsSubmitting || loading}
               className={`flex-1 font-semibold px-6 py-3 rounded-xl transform transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 ${
-                !isValid || formIsSubmitting
+                !isValid || formIsSubmitting || loading
                   ? "bg-gray-500 text-gray-300 cursor-not-allowed"
                   : "bg-primary text-white hover:opacity-80 hover:scale-105 hover:shadow-lg"
               }`}
             >
-              {formIsSubmitting ? "Adding..." : "Add Problem"}
+              {formIsSubmitting || loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Adding...
+                </div>
+              ) : (
+                "Add Problem"
+              )}
             </button>
           </div>
         </form>

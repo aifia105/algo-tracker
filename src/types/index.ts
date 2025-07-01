@@ -4,7 +4,7 @@ export type User = {
   email: string;
 };
 export type Problem = {
-  id: string;
+  id?: string;
   problemId: string;
   problemTitle: string;
   problemUrl: string;
@@ -14,9 +14,9 @@ export type Problem = {
   attempts: number;
   tags: string[];
   status: Status;
-  TimeTaken: number;
+  timeTaken: number;
   cognitiveLoad: number;
-  dateSolved: Date;
+  dateSolved: string;
   notes?: string;
 };
 

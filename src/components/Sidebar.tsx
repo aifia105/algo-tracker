@@ -29,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
     {
       name: "Dashboard",
       icon: DashboardIcon,
-      href: "",
+      href: "/dashboard",
       isActive: pathname === "/dashboard",
     },
     {
@@ -39,10 +39,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
       isActive: pathname === "/progress",
     },
     {
-      name: "Problems History",
+      name: "History",
       icon: HistoryIcon,
-      href: "",
-      isActive: pathname === "/problems-history",
+      href: "/history",
+      isActive: pathname === "/history",
     },
     {
       name: "Profile",
@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className = "" }) => {
     try {
       const res = logout();
       if (res) {
-        router.push("/auth/login");
+        window.location.href = "/auth/login";
       }
     } catch (error) {
       console.error("Logout failed:", error);

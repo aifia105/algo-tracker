@@ -59,4 +59,12 @@ body {
   .bg-primary:hover {
     background-color: rgba(56, 189, 248, 0.8);
   }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
