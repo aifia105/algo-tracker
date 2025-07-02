@@ -1,15 +1,17 @@
 import { Problem } from "@/types";
 import { useAuthStore } from "./authStore";
 import { create } from "zustand";
-import { addProblem, getProblems } from "@/utils/problem";
+import { addProblem, getProblems, getProblemsTags } from "@/utils/problem";
 
 type problemState = {
   problems: Problem[];
   loading: boolean;
   error: string | null;
   selectedProblem: Problem | null;
+  problemTags: string[] | undefined;
   addProblem: (problem: Problem) => Promise<Problem | undefined>;
   getProblems: () => Promise<Problem[] | undefined>;
+  getProblemsTags: () => Promise<string[] | undefined>;
   setSelectedProblem: (problem: Problem | null) => void;
   clearError: () => void;
 };
@@ -19,6 +21,7 @@ export const useProblemStore = create<problemState>((set, get) => ({
   loading: false,
   error: null,
   selectedProblem: null,
+  problemTags: undefined,
 
   addProblem: async (problem) => {
     const token = useAuthStore.getState().token;
@@ -63,6 +66,29 @@ export const useProblemStore = create<problemState>((set, get) => ({
         loading: false,
         error:
           error instanceof Error ? error.message : "Error fetching problems",
+      });
+    }
+  },
+  getProblemsTags: async () => {
+    const token = useAuthStore.getState().token;
+
+    if (!token) {
+      set({ error: "Authentication token not found" });
+      return;
+    }
+
+    set({ loading: true, error: null });
+    try {
+      const data = await getProblemsTags(token);
+      set({ problemTags: data, loading: false });
+      return data;
+    } catch (error) {
+      set({
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error fetching problems tags",
       });
     }
   },

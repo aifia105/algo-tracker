@@ -6,19 +6,48 @@ import Loading from "@/components/Loading";
 import HistoryStats from "@/components/HistoryStats";
 import FilterProblems from "@/components/FilterProblems";
 import Card from "@/components/Card";
+import Search from "@/components/Search";
 
 const History = () => {
-  const { getProblems, loading, error, problems } = useProblemStore();
+  const {
+    getProblems,
+    loading,
+    error,
+    problems,
+    getProblemsTags,
+    problemTags,
+  } = useProblemStore();
   const [filteredProblems, setFilteredProblems] = useState<Problem[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
+  const [filterTag, setFilterTag] = useState<string>("all");
+  const [filterTimeTaken, setFilterTimeTaken] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     getProblems();
-  }, [getProblems]);
+    getProblemsTags();
+  }, [getProblems, getProblemsTags]);
 
   useEffect(() => {
     let filtered = problems;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((p) => {
+        const titleMatch = p.problemTitle.toLowerCase().includes(query);
+
+        const tagMatch = p.tags.some((tag) =>
+          tag.toLowerCase().includes(query)
+        );
+
+        const difficultyMatch = p.difficulty.toLowerCase().includes(query);
+
+        const idMatch = p.problemId.toLowerCase().includes(query);
+
+        return titleMatch || tagMatch || difficultyMatch || idMatch;
+      });
+    }
 
     if (filterStatus !== "all") {
       filtered = filtered.filter((p) => p.status === filterStatus);
@@ -28,8 +57,28 @@ const History = () => {
       filtered = filtered.filter((p) => p.difficulty === filterDifficulty);
     }
 
+    if (filterTag !== "all") {
+      filtered = filtered.filter((p) => p.tags.includes(filterTag));
+    }
+
+    if (filterTimeTaken !== "all") {
+      if (filterTimeTaken === "5+") {
+        filtered = filtered.filter((p) => p.timeTaken > 5);
+      } else {
+        const timeValue = parseInt(filterTimeTaken);
+        filtered = filtered.filter((p) => p.timeTaken === timeValue);
+      }
+    }
+
     setFilteredProblems(filtered);
-  }, [problems, filterStatus, filterDifficulty]);
+  }, [
+    problems,
+    filterStatus,
+    filterDifficulty,
+    filterTag,
+    filterTimeTaken,
+    searchQuery,
+  ]);
 
   if (loading) {
     return (
@@ -48,8 +97,6 @@ const History = () => {
         <p className="text-secondary">
           Track your coding progress and review past solutions
         </p>
-
-        <HistoryStats problems={problems} />
       </header>
 
       <FilterProblems
@@ -57,8 +104,20 @@ const History = () => {
         setFilterStatus={setFilterStatus}
         filterDifficulty={filterDifficulty}
         setFilterDifficulty={setFilterDifficulty}
+        filterTag={filterTag}
+        setFilterTag={setFilterTag}
+        filterTimeTaken={filterTimeTaken}
+        setFilterTimeTaken={setFilterTimeTaken}
         problemsLength={problems.length}
         filteredProblemsLength={filteredProblems.length}
+        problemTags={problemTags}
+      />
+
+      <Search
+        className="mb-6"
+        placeholder="Search by title, tags, difficulty or ID..."
+        value={searchQuery}
+        onChange={setSearchQuery}
       />
 
       {error && (
@@ -80,6 +139,8 @@ const History = () => {
           <p className="text-secondary">
             {problems.length === 0
               ? "Start your coding journey by adding your first problem!"
+              : searchQuery
+              ? `No problems match your search "${searchQuery}". Try a different search term or adjust your filters.`
               : "No problems match your current filters. Try adjusting the filter criteria."}
           </p>
         </div>
